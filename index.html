@@ -25,15 +25,31 @@
   .stat-pill{background:rgba(0,0,0,.35);border:1px solid rgba(200,134,10,.3);border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden}
   #nut-count-big{grid-column:1/-1;background:linear-gradient(135deg,rgba(200,134,10,.2),rgba(240,168,48,.1));border-color:var(--acorn);font-size:.9rem;justify-content:center;gap:8px}
   #nut-count-big .val{font-size:1.1rem;color:var(--acorn-glow);font-weight:800}
-  .mini-bar-row{display:flex;gap:8px;align-items:center;margin-top:5px}
-  .mini-bar-wrap{flex:1;display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--cream-dark);font-weight:700}
-  .mini-bar-bg{flex:1;height:8px;background:rgba(0,0,0,.4);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
-  .mini-bar-fill{height:100%;border-radius:10px;transition:width .6s ease}
-  .bar-happy .mini-bar-fill{background:linear-gradient(90deg,#2ecc71,#27ae60)}
-  .bar-fatigue .mini-bar-fill{background:linear-gradient(90deg,#e74c3c,#c0392b)}
-  /* warning pulse when low happy / high fatigue */
-  .bar-warn .mini-bar-fill{animation:barWarn .8s ease-in-out infinite}
-  @keyframes barWarn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+  .mini-bar-row{display:flex;gap:6px;align-items:stretch;margin-top:6px}
+  .stat-bar-block{flex:1;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:4px 7px 5px;display:flex;flex-direction:column;gap:3px;transition:border-color .4s}
+  .stat-bar-block.state-good{border-color:rgba(46,204,113,.3)}
+  .stat-bar-block.state-ok{border-color:rgba(241,196,15,.3)}
+  .stat-bar-block.state-bad{border-color:rgba(230,126,34,.5)}
+  .stat-bar-block.state-critical{border-color:rgba(231,76,60,.8);animation:blockPulse .9s ease-in-out infinite}
+  @keyframes blockPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(231,76,60,.5)}}
+  .sbar-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
+  .sbar-icon{font-size:1rem;line-height:1;flex-shrink:0;transition:filter .3s}
+  .stat-bar-block.state-critical .sbar-icon{animation:iconShake .5s ease-in-out infinite}
+  @keyframes iconShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+  .sbar-label{font-size:.58rem;font-weight:800;letter-spacing:.3px;flex:1;line-height:1;color:var(--cream-dark)}
+  .sbar-val{font-size:.7rem;font-weight:800;font-family:'Fredoka One',cursive;transition:color .4s}
+  .state-good  .sbar-val{color:#2ecc71}
+  .state-ok    .sbar-val{color:#f1c40f}
+  .state-bad   .sbar-val{color:#e67e22}
+  .state-critical .sbar-val{color:#e74c3c}
+  .sbar-bg{height:7px;background:rgba(0,0,0,.4);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+  .sbar-fill{height:100%;border-radius:6px;transition:width .7s ease, background .5s ease}
+  .sbar-status{font-size:.55rem;font-weight:700;opacity:.85;line-height:1;letter-spacing:.2px;transition:color .4s}
+  .state-good  .sbar-status{color:#2ecc71}
+  .state-ok    .sbar-status{color:#f1c40f}
+  .state-bad   .sbar-status{color:#e67e22}
+  .state-critical .sbar-status{color:#e74c3c;animation:textBlink .7s ease-in-out infinite}
+  @keyframes textBlink{0%,100%{opacity:.85}50%{opacity:1}}
 
   /* GAME ZONE */
   #main-area{flex:1;position:relative;z-index:1;display:flex;flex-direction:column;overflow:hidden}
@@ -98,7 +114,19 @@
   .building-info{flex:1;min-width:0}
   .building-name{font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .building-desc{font-size:.6rem;color:rgba(255,220,120,.6);margin-top:1px;line-height:1.3}
-  .building-effects{font-size:.63rem;color:var(--leaf-light);margin-top:2px;font-weight:700}
+  .building-chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+  .chip{display:inline-flex;align-items:center;gap:2px;font-size:.58rem;font-weight:800;padding:2px 6px;border-radius:8px;line-height:1.2;white-space:nowrap}
+  .chip-prod{background:rgba(52,152,219,.25);color:#74b9ff;border:1px solid rgba(52,152,219,.35)}
+  .chip-happy{background:rgba(46,204,113,.2);color:#55efc4;border:1px solid rgba(46,204,113,.3)}
+  .chip-fatigue-good{background:rgba(46,204,113,.15);color:#81ecec;border:1px solid rgba(46,204,113,.25)}
+  .chip-fatigue-bad{background:rgba(231,76,60,.2);color:#ff7675;border:1px solid rgba(231,76,60,.3)}
+  .chip-cap{background:rgba(155,89,182,.2);color:#d7aefb;border:1px solid rgba(155,89,182,.3)}
+  .chip-slots{background:rgba(200,134,10,.2);color:var(--acorn-glow);border:1px solid rgba(200,134,10,.3)}
+  .chip-special{background:rgba(255,255,255,.1);color:var(--cream-dark);border:1px solid rgba(255,255,255,.15)}
+  /* "How it works" detail line */
+  .building-howit{font-size:.58rem;color:rgba(255,220,120,.45);margin-top:3px;line-height:1.35;font-style:italic}
+  /* live contribution line */
+  .building-live{font-size:.6rem;font-weight:700;margin-top:3px;color:rgba(100,200,100,.8);line-height:1.2}
   .building-count{font-size:.58rem;color:rgba(255,255,255,.4);margin-top:1px}
   .build-progress{height:4px;background:rgba(0,0,0,.3);border-radius:2px;margin-top:4px;overflow:hidden}
   .build-progress-fill{height:100%;background:linear-gradient(90deg,var(--leaf),var(--acorn-light));border-radius:2px;transition:width .4s linear}
@@ -193,11 +221,25 @@
       <div class="stat-pill">🏡 <span id="slots-used-display">0</span>/<span id="slots-max-display">6</span> slots</div>
     </div>
     <div class="mini-bar-row">
-      <div class="mini-bar-wrap bar-happy" id="happy-wrap">😄 <span id="happy-val">100</span>%
-        <div class="mini-bar-bg"><div class="mini-bar-fill" id="happy-bar" style="width:100%"></div></div>
+      <!-- HAPPINESS BAR -->
+      <div class="stat-bar-block state-good" id="happy-block">
+        <div class="sbar-top">
+          <span class="sbar-icon" id="happy-icon">😄</span>
+          <span class="sbar-label">Mood</span>
+          <span class="sbar-val" id="happy-val">100%</span>
+        </div>
+        <div class="sbar-bg"><div class="sbar-fill" id="happy-bar" style="width:100%;background:#2ecc71"></div></div>
+        <div class="sbar-status" id="happy-status">Excellent · +prod</div>
       </div>
-      <div class="mini-bar-wrap bar-fatigue" id="fatigue-wrap">💤 <span id="fatigue-val">0</span>%
-        <div class="mini-bar-bg"><div class="mini-bar-fill" id="fatigue-bar" style="width:0%"></div></div>
+      <!-- FATIGUE BAR -->
+      <div class="stat-bar-block state-good" id="fatigue-block">
+        <div class="sbar-top">
+          <span class="sbar-icon" id="fatigue-icon">💤</span>
+          <span class="sbar-label">Fatigue</span>
+          <span class="sbar-val" id="fatigue-val">0%</span>
+        </div>
+        <div class="sbar-bg"><div class="sbar-fill" id="fatigue-bar" style="width:0%;background:#2ecc71"></div></div>
+        <div class="sbar-status" id="fatigue-status">Rested · no penalty</div>
       </div>
     </div>
   </div>
@@ -854,13 +896,49 @@ function renderBuildings(force){
       // Demolish button only if we own at least 1
       const demolishHtml=cnt>0?`<button class="demolish-btn" onclick="askDemolish('${b.id}')">🔴 Demo</button>`:'';
 
+      // Build effect chips
+      const chips=[];
+      if(b.cap)         chips.push(`<span class="chip chip-cap">🏠 +${b.cap} capacity</span>`);
+      if(b.prodB>0)     chips.push(`<span class="chip chip-prod">⚡ +${b.prodB}% prod</span>`);
+      if(b.scienceB)    chips.push(`<span class="chip chip-prod">⚡ +(mood×0.2)%</span>`);
+      if(b.happyB>0)    chips.push(`<span class="chip chip-happy">😄 +${b.happyB}% mood</span>`);
+      if(b.fatigueB<0)  chips.push(`<span class="chip chip-fatigue-good">💤 ${b.fatigueB}% fatigue</span>`);
+      if(b.fatigueB>0)  chips.push(`<span class="chip chip-fatigue-bad">💤 +${b.fatigueB}% fatigue</span>`);
+      if(b.extraSlots)  chips.push(`<span class="chip chip-slots">🏡 +${b.extraSlots} slots</span>`);
+      if(b.immigB)      chips.push(`<span class="chip chip-special">🚁 immigrants ×1.5</span>`);
+
+      // "How it works" explanation
+      let howIt='';
+      if(b.cap)     howIt='Raises squirrel capacity. More squirrels = more base production. <em>Permanent while built.</em>';
+      else if(b.prodB||b.scienceB) howIt='Shifts the production multiplier. Effect is <em>continuous & passive</em> — active every second as long as the building stands.';
+      else if(b.happyB&&!b.prodB) howIt='Raises the mood equilibrium. Squirrels drift toward this happier target over time. <em>Permanent while built.</em>';
+      else if(b.fatigueB<0) howIt='Lowers the fatigue equilibrium. Squirrels slowly recover toward this lower target. <em>Permanent while built.</em>';
+      else if(b.extraSlots) howIt='Adds permanent building slots. One-time structural upgrade — cannot be demolished.';
+      else if(b.immigB) howIt='Speeds up squirrel immigration rate. Effect is constant, not a one-time event.';
+      else howIt='Continuous passive effect while the building is operational.';
+      if(b.optCap) howIt+=' ⚠️ Gets crowded above '+b.optCap+' squirrels — mood bonus drops.';
+
+      // Live contribution (only if owned)
+      let liveHtml='';
+      if(cnt>0){
+        const liveParts=[];
+        if(b.prodB)    liveParts.push(`⚡ +${(b.prodB*cnt).toFixed(0)}% prod`);
+        if(b.scienceB) liveParts.push(`⚡ +${(G.happiness*0.2*cnt).toFixed(1)}% prod`);
+        if(b.happyB)   liveParts.push(`😄 +${(b.happyB*cnt).toFixed(0)}% mood target`);
+        if(b.cap)      liveParts.push(`🏠 ${b.cap*cnt} capacity`);
+        if(b.fatigueB) liveParts.push(`💤 ${(b.fatigueB*cnt>0?'+':'')}${(b.fatigueB*cnt).toFixed(0)}% fatigue target`);
+        if(liveParts.length) liveHtml=`<div class="building-live">▶ Now contributing: ${liveParts.join(' · ')}</div>`;
+      }
+
       card.innerHTML=`
         <div class="building-icon">${b.icon}</div>
         <div class="building-info">
           <div class="building-name">${b.name}${nameExtras}</div>
           <div class="building-desc">${b.desc}</div>
-          <div class="building-effects">${b.effect}</div>
+          <div class="building-chips">${chips.join('')}</div>
+          <div class="building-howit">${howIt}</div>
           ${cnt>0?`<div class="building-count">Owned: ${cnt}</div>`:''}
+          ${liveHtml}
           ${progressHtml}
         </div>
         <div class="btn-col">
@@ -921,6 +999,45 @@ function updateColony(){
   document.getElementById('colony-tips').innerHTML=adv;
 }
 
+// ===== RICH BAR HUD =====
+function updateBarHUD(){
+  // ---- HAPPINESS ----
+  const h = G.happiness;
+  let hState, hIcon, hStatus, hColor;
+  if(h >= 75) { hState='good';     hIcon='😄'; hStatus='Excellent · high production';  hColor='#2ecc71'; }
+  else if(h >= 55) { hState='ok'; hIcon='😊'; hStatus='Good · slight prod bonus';       hColor='#a8e063'; }
+  else if(h >= 40) { hState='ok'; hIcon='😐'; hStatus='Meh · production reduced';       hColor='#f1c40f'; }
+  else if(h >= 25) { hState='bad'; hIcon='😟'; hStatus='⚠ Unhappy · big prod penalty'; hColor='#e67e22'; }
+  else             { hState='critical'; hIcon='😱'; hStatus='🚨 MISERABLE · build entertainment!'; hColor='#e74c3c'; }
+
+  const hBlock=document.getElementById('happy-block');
+  hBlock.className='stat-bar-block state-'+hState;
+  document.getElementById('happy-icon').textContent=hIcon;
+  document.getElementById('happy-val').textContent=Math.round(h)+'%';
+  document.getElementById('happy-status').textContent=hStatus;
+  const hBar=document.getElementById('happy-bar');
+  hBar.style.width=h+'%';
+  hBar.style.background=hColor;
+
+  // ---- FATIGUE ----
+  const f = G.fatigue;
+  let fState, fIcon, fStatus, fColor;
+  if(f <= 15)      { fState='good';     fIcon='✨'; fStatus='Rested · no penalty';        fColor='#2ecc71'; }
+  else if(f <= 35) { fState='ok';       fIcon='😴'; fStatus='Sleepy · small prod loss';    fColor='#a8e063'; }
+  else if(f <= 55) { fState='ok';       fIcon='🥱'; fStatus='Tired · prod reduced';        fColor='#f1c40f'; }
+  else if(f <= 75) { fState='bad';      fIcon='😩'; hStatus='⚠ Exhausted · big penalty'; fColor='#e67e22'; fStatus='⚠ Exhausted · build a gym!'; }
+  else             { fState='critical'; fIcon='💀'; fStatus='🚨 BURNT OUT · crisis!';      fColor='#e74c3c'; }
+
+  const fBlock=document.getElementById('fatigue-block');
+  fBlock.className='stat-bar-block state-'+fState;
+  document.getElementById('fatigue-icon').textContent=fIcon;
+  document.getElementById('fatigue-val').textContent=Math.round(f)+'%';
+  document.getElementById('fatigue-status').textContent=fStatus;
+  const fBar=document.getElementById('fatigue-bar');
+  fBar.style.width=f+'%';
+  fBar.style.background=fColor;
+}
+
 // ===== MAIN LOOP =====
 let lastFrame=Date.now();
 let renderAccum=0;
@@ -948,9 +1065,8 @@ function gameLoop(){
   G.maxSquirrels=calcMaxSquirrels();
   if(G.squirrels>G.maxSquirrels){G.squirrels=G.maxSquirrels;updateSquirrelVisuals();}
 
-  // Warn bars
-  document.getElementById('happy-wrap').classList.toggle('bar-warn', G.happiness<30);
-  document.getElementById('fatigue-wrap').classList.toggle('bar-warn', G.fatigue>70);
+  // Rich bar updates
+  updateBarHUD();
 
   // HUD
   document.getElementById('nut-display').textContent=fmt(G.nuts);
@@ -960,10 +1076,6 @@ function gameLoop(){
   const used=countUsedSlots();
   document.getElementById('slots-used-display').textContent=used;
   document.getElementById('slots-max-display').textContent=G.maxSlots;
-  document.getElementById('happy-val').textContent=G.happiness.toFixed(0);
-  document.getElementById('fatigue-val').textContent=G.fatigue.toFixed(0);
-  document.getElementById('happy-bar').style.width=G.happiness+'%';
-  document.getElementById('fatigue-bar').style.width=G.fatigue+'%';
 
   renderAccum+=dt;
   if(renderAccum>=RENDER_INTERVAL){renderAccum=0;renderBuildings();}
