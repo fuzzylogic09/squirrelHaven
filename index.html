@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌰 Squirrel Haven</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root {
+    --bark:#5C3317;--bark-light:#7B4A28;--bark-dark:#3A1F0A;
+    --acorn:#C8860A;--acorn-light:#F0A830;--acorn-glow:#FFD060;
+    --leaf:#3A7D44;--leaf-light:#5AA05F;
+    --cream:#FFF8E7;--cream-dark:#F0E0C0;
+    --text:#2C1A0E;--red:#E74C3C;--blue:#3498DB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:var(--bark-dark);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;overflow-x:hidden}
+  #app{width:100%;max-width:430px;min-height:100vh;background:linear-gradient(160deg,#2D5016 0%,#3A1F0A 40%,#1A0A02 100%);position:relative;overflow:hidden;display:flex;flex-direction:column}
+  #app::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(58,125,68,.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(92,51,23,.3) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+  /* HEADER */
+  #header{background:linear-gradient(135deg,var(--bark-dark) 0%,var(--bark) 100%);border-bottom:3px solid var(--acorn);padding:10px 14px 8px;position:relative;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+  #title{font-family:'Fredoka One',cursive;color:var(--acorn-light);font-size:1.6rem;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.8),0 0 20px rgba(200,134,10,.4);letter-spacing:1px;line-height:1;margin-bottom:8px}
+  #stats-bar{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .stat-pill{background:rgba(0,0,0,.35);border:1px solid rgba(200,134,10,.3);border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden}
+  #nut-count-big{grid-column:1/-1;background:linear-gradient(135deg,rgba(200,134,10,.2),rgba(240,168,48,.1));border-color:var(--acorn);font-size:.9rem;justify-content:center;gap:8px}
+  #nut-count-big .val{font-size:1.1rem;color:var(--acorn-glow);font-weight:800}
+  .mini-bar-row{display:flex;gap:8px;align-items:center;margin-top:5px}
+  .mini-bar-wrap{flex:1;display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--cream-dark);font-weight:700}
+  .mini-bar-bg{flex:1;height:8px;background:rgba(0,0,0,.4);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+  .mini-bar-fill{height:100%;border-radius:10px;transition:width .6s ease}
+  .bar-happy .mini-bar-fill{background:linear-gradient(90deg,#2ecc71,#27ae60)}
+  .bar-fatigue .mini-bar-fill{background:linear-gradient(90deg,#e74c3c,#c0392b)}
+  /* warning pulse when low happy / high fatigue */
+  .bar-warn .mini-bar-fill{animation:barWarn .8s ease-in-out infinite}
+  @keyframes barWarn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+
+  /* GAME ZONE */
+  #main-area{flex:1;position:relative;z-index:1;display:flex;flex-direction:column;overflow:hidden}
+  #game-zone{position:relative;height:260px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+  #squirrel-layer{position:absolute;inset:0;pointer-events:none}
+  .squirrel-anim{position:absolute;font-size:1.4rem;animation:sqWiggle 3s ease-in-out infinite;cursor:default;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+  @keyframes sqWiggle{0%,100%{transform:translateY(0) rotate(-5deg)}25%{transform:translateY(-6px) rotate(3deg)}50%{transform:translateY(-2px) rotate(-2deg)}75%{transform:translateY(-8px) rotate(5deg)}}
+  .squirrel-anim.crowned{font-size:1.6rem;filter:drop-shadow(0 0 6px gold) drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+
+  /* BIG NUT */
+  #big-nut-btn{position:relative;width:120px;height:120px;border-radius:50%;border:none;cursor:pointer;background:radial-gradient(circle at 35% 35%,#D4932A,#8B4513 60%,#5C2E00);box-shadow:0 8px 30px rgba(0,0,0,.6),0 0 40px rgba(200,134,10,.3),inset 0 -4px 12px rgba(0,0,0,.4),inset 0 4px 8px rgba(255,200,80,.3);transition:transform .1s,box-shadow .1s;z-index:5;display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  #big-nut-btn:active{transform:scale(.92);box-shadow:0 4px 15px rgba(0,0,0,.8)}
+  #big-nut-btn .nut-emoji{font-size:3rem;line-height:1}
+  #big-nut-btn .nut-label{font-family:'Fredoka One',cursive;font-size:.6rem;color:rgba(255,220,120,.8);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+  #big-nut-btn::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(200,134,10,.4);animation:glowPulse 2s ease-in-out infinite}
+  @keyframes glowPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+  /* crown bonus indicator on nut */
+  #crown-indicator{position:absolute;top:-10px;right:-10px;background:linear-gradient(135deg,#f39c12,#f1c40f);border:2px solid #fff;border-radius:20px;padding:2px 7px;font-size:.62rem;font-weight:800;color:#3A1F0A;display:none;animation:crownPop .3s ease;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  #crown-indicator.show{display:block}
+  @keyframes crownPop{from{transform:scale(0)}to{transform:scale(1)}}
+
+  .click-particle{position:absolute;font-size:.85rem;font-weight:800;color:var(--acorn-glow);pointer-events:none;z-index:20;animation:floatUp .9s ease-out forwards;font-family:'Fredoka One',cursive;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+  @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.3)}}
+
+  /* EVENT BANNER */
+  #event-banner{position:absolute;top:6px;left:6px;right:6px;background:linear-gradient(135deg,rgba(0,0,0,.88),rgba(58,31,10,.92));border:2px solid var(--acorn);border-radius:12px;padding:7px 12px;font-size:.72rem;font-weight:700;color:var(--cream);z-index:30;text-align:center;display:none;animation:slideDown .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+  #event-banner.show{display:block}
+  #event-banner .ev-title{color:var(--acorn-glow);font-family:'Fredoka One',cursive;font-size:.9rem}
+  @keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  /* MAIN TABS */
+  #tab-bar{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(0,0,0,.5);border-top:2px solid rgba(200,134,10,.3);border-bottom:2px solid rgba(200,134,10,.3);z-index:10;flex-shrink:0}
+  .tab-btn{background:none;border:none;padding:7px 4px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.58rem;font-weight:800;color:rgba(255,220,120,.5);display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .2s;border-bottom:3px solid transparent;-webkit-tap-highlight-color:transparent}
+  .tab-btn .tab-icon{font-size:1.15rem}
+  .tab-btn.active{color:var(--acorn-glow);border-bottom-color:var(--acorn);background:rgba(200,134,10,.1)}
+  .tab-btn:active{transform:scale(.95)}
+
+  /* CONTENT */
+  #content-area{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--acorn) transparent}
+  #content-area::-webkit-scrollbar{width:4px}
+  #content-area::-webkit-scrollbar-thumb{background:var(--acorn);border-radius:2px}
+  .panel{display:none;animation:fadeIn .2s ease;padding:10px}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* BUILDING SUB-TABS */
+  #bld-subtab-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+  .bld-subtab{background:rgba(0,0,0,.3);border:1px solid rgba(200,134,10,.2);border-radius:10px;padding:6px 2px;font-family:'Nunito',sans-serif;font-size:.58rem;font-weight:800;color:rgba(255,220,120,.5);cursor:pointer;text-align:center;transition:all .2s;-webkit-tap-highlight-color:transparent;line-height:1.3}
+  .bld-subtab .bst-icon{font-size:1.1rem;display:block;margin-bottom:2px}
+  .bld-subtab.active{background:rgba(200,134,10,.2);border-color:var(--acorn);color:var(--acorn-glow)}
+  .bld-subtab:active{transform:scale(.95)}
+
+  .slots-info{text-align:center;font-size:.72rem;color:var(--cream-dark);margin-bottom:8px;background:rgba(0,0,0,.3);border-radius:20px;padding:5px 10px;font-weight:700}
+  .bld-panel{display:none}
+  .bld-panel.active{display:block}
+
+  /* BUILDING CARDS */
+  .building-card{background:linear-gradient(135deg,rgba(0,0,0,.4),rgba(58,31,10,.3));border:1px solid rgba(200,134,10,.25);border-radius:12px;padding:9px 10px;margin-bottom:7px;display:flex;align-items:center;gap:9px;transition:border-color .2s}
+  .building-card.affordable{border-color:rgba(200,134,10,.7);box-shadow:0 0 8px rgba(200,134,10,.2)}
+  .building-card.building-now{border-color:var(--leaf)}
+  .building-icon{font-size:1.9rem;flex-shrink:0;width:36px;text-align:center}
+  .building-info{flex:1;min-width:0}
+  .building-name{font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .building-desc{font-size:.6rem;color:rgba(255,220,120,.6);margin-top:1px;line-height:1.3}
+  .building-effects{font-size:.63rem;color:var(--leaf-light);margin-top:2px;font-weight:700}
+  .building-count{font-size:.58rem;color:rgba(255,255,255,.4);margin-top:1px}
+  .build-progress{height:4px;background:rgba(0,0,0,.3);border-radius:2px;margin-top:4px;overflow:hidden}
+  .build-progress-fill{height:100%;background:linear-gradient(90deg,var(--leaf),var(--acorn-light));border-radius:2px;transition:width .4s linear}
+
+  /* BUTTON COLUMN: build + demolish */
+  .btn-col{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+  .building-btn{background:linear-gradient(135deg,var(--acorn),var(--bark));border:1px solid var(--acorn-light);border-radius:9px;padding:6px 9px;font-family:'Fredoka One',cursive;font-size:.67rem;color:var(--cream);cursor:pointer;text-align:center;min-width:58px;transition:all .2s;-webkit-tap-highlight-color:transparent;line-height:1.3}
+  .building-btn:disabled{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed}
+  .building-btn:not(:disabled):active{transform:scale(.95)}
+  .demolish-btn{background:rgba(180,30,30,.35);border:1px solid rgba(231,76,60,.4);border-radius:9px;padding:4px 6px;font-size:.58rem;font-weight:800;color:rgba(231,76,60,.8);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:all .2s;line-height:1}
+  .demolish-btn:active{transform:scale(.95);background:rgba(180,30,30,.6)}
+
+  /* STATS */
+  .stat-section{background:rgba(0,0,0,.3);border:1px solid rgba(200,134,10,.2);border-radius:12px;padding:12px;margin-bottom:10px}
+  .stat-section h3{font-family:'Fredoka One',cursive;color:var(--acorn-light);font-size:.85rem;margin-bottom:8px}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);color:var(--cream-dark)}
+  .stat-row:last-child{border-bottom:none}
+  .stat-row .sval{color:var(--acorn-glow);font-weight:700}
+
+  /* JOURNAL */
+  .journal-entry{background:rgba(0,0,0,.25);border-left:3px solid var(--acorn);border-radius:0 8px 8px 0;padding:7px 10px;margin-bottom:6px;font-size:.7rem;color:var(--cream-dark);line-height:1.5}
+  .journal-entry .je-time{font-size:.58rem;color:rgba(255,220,120,.4);margin-bottom:2px}
+  .journal-entry.positive{border-color:var(--leaf-light)}
+  .journal-entry.negative{border-color:var(--red)}
+  .journal-entry.neutral{border-color:var(--blue)}
+
+  /* COLONY */
+  .colony-section{background:rgba(0,0,0,.3);border:1px solid rgba(200,134,10,.2);border-radius:12px;padding:12px;margin-bottom:10px}
+  .colony-section h3{font-family:'Fredoka One',cursive;color:var(--acorn-light);font-size:.9rem;margin-bottom:10px;text-align:center}
+  .colony-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+  .colony-room{background:linear-gradient(135deg,rgba(58,31,10,.6),rgba(0,0,0,.4));border:1px solid rgba(200,134,10,.3);border-radius:8px;padding:7px 4px;text-align:center;font-size:.58rem;color:var(--cream-dark)}
+  .colony-room .room-icon{font-size:1.3rem;display:block}
+  .colony-room .room-name{font-weight:700;margin-top:2px}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bark);border:2px solid var(--acorn);border-radius:20px;padding:9px 18px;font-size:.78rem;font-weight:700;color:var(--cream);z-index:1000;text-align:center;max-width:310px;box-shadow:0 8px 30px rgba(0,0,0,.6);transition:transform .3s ease;pointer-events:none}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* CROWN TOOLTIP MODAL */
+  #crown-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+  #crown-modal.show{display:flex}
+  .crown-box{background:linear-gradient(135deg,#3A1F0A,#7B4A28);border:3px solid gold;border-radius:20px;padding:22px;max-width:320px;width:100%;text-align:center;box-shadow:0 0 40px rgba(255,215,0,.3)}
+  .crown-box h2{font-family:'Fredoka One',cursive;color:gold;font-size:1.4rem;margin-bottom:8px}
+  .crown-box p{font-size:.78rem;color:var(--cream-dark);line-height:1.6;margin-bottom:12px}
+  .crown-timer{font-family:'Fredoka One',cursive;font-size:1.6rem;color:gold;margin:8px 0}
+  .crown-close{background:linear-gradient(135deg,#f39c12,#f1c40f);border:2px solid #fff;border-radius:14px;padding:10px 28px;font-family:'Fredoka One',cursive;font-size:.95rem;color:#3A1F0A;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .crown-close:active{transform:scale(.96)}
+
+  /* OFFLINE MODAL */
+  #offline-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+  #offline-modal.show{display:flex}
+  .offline-box{background:linear-gradient(135deg,var(--bark-dark),var(--bark));border:3px solid var(--acorn);border-radius:20px;padding:22px;max-width:330px;width:100%;text-align:center}
+  .offline-box h2{font-family:'Fredoka One',cursive;color:var(--acorn-glow);font-size:1.3rem;margin-bottom:8px}
+  .offline-box p{font-size:.78rem;color:var(--cream-dark);line-height:1.6;margin-bottom:10px}
+  .offline-box .big-nuts{font-family:'Fredoka One',cursive;font-size:1.9rem;color:var(--acorn-glow);margin:8px 0}
+  .offline-ok-btn{background:linear-gradient(135deg,var(--acorn),var(--bark-light));border:2px solid var(--acorn-light);border-radius:14px;padding:11px 28px;font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--cream);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .offline-ok-btn:active{transform:scale(.96)}
+
+  /* DEMOLISH CONFIRM */
+  #demolish-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+  #demolish-modal.show{display:flex}
+  .demolish-box{background:linear-gradient(135deg,#1a0a02,#3A1F0A);border:3px solid var(--red);border-radius:20px;padding:22px;max-width:300px;width:100%;text-align:center}
+  .demolish-box h2{font-family:'Fredoka One',cursive;color:var(--red);font-size:1.2rem;margin-bottom:8px}
+  .demolish-box p{font-size:.76rem;color:var(--cream-dark);line-height:1.6;margin-bottom:14px}
+  .demolish-box .refund{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--acorn-glow);margin-bottom:12px}
+  .demo-btn-row{display:flex;gap:10px;justify-content:center}
+  .demo-confirm{background:rgba(180,30,30,.7);border:2px solid var(--red);border-radius:12px;padding:9px 22px;font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--cream);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .demo-cancel{background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.2);border-radius:12px;padding:9px 22px;font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--cream-dark);cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+  .milestone-flash{position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(200,134,10,.4) 0%,transparent 70%);pointer-events:none;z-index:500;animation:milestoneFlash 1s ease-out forwards}
+  @keyframes milestoneFlash{0%{opacity:1}100%{opacity:0}}
+  .badge{display:inline-block;font-size:.52rem;font-weight:800;padding:1px 5px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px;margin-left:4px;animation:pulse 1s ease-in-out infinite;vertical-align:middle}
+  .badge-building{background:var(--leaf);color:white}
+  .badge-unique{background:var(--acorn);color:white}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+  @media(max-height:640px){#game-zone{height:200px}#big-nut-btn{width:105px;height:105px}#big-nut-btn .nut-emoji{font-size:2.6rem}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div id="title">🌰 Squirrel Haven 🐿️</div>
+    <div id="stats-bar">
+      <div class="stat-pill" id="nut-count-big">
+        🌰 <span class="val" id="nut-display">0</span>
+        <span style="opacity:.5;font-size:.62rem">nuts</span>
+        &nbsp; ⚡ +<span id="prod-display">0</span>/s
+      </div>
+      <div class="stat-pill">🐿️ <span id="sq-display">0</span>/<span id="sq-max-display">0</span></div>
+      <div class="stat-pill">🏡 <span id="slots-used-display">0</span>/<span id="slots-max-display">6</span> slots</div>
+    </div>
+    <div class="mini-bar-row">
+      <div class="mini-bar-wrap bar-happy" id="happy-wrap">😄 <span id="happy-val">100</span>%
+        <div class="mini-bar-bg"><div class="mini-bar-fill" id="happy-bar" style="width:100%"></div></div>
+      </div>
+      <div class="mini-bar-wrap bar-fatigue" id="fatigue-wrap">💤 <span id="fatigue-val">0</span>%
+        <div class="mini-bar-bg"><div class="mini-bar-fill" id="fatigue-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-area">
+    <!-- GAME ZONE -->
+    <div id="game-zone">
+      <div id="squirrel-layer"></div>
+      <div id="event-banner"><div class="ev-title" id="ev-title">Event!</div><div id="ev-desc"></div></div>
+      <button id="big-nut-btn" onclick="clickNut(event)">
+        <div id="crown-indicator">👑 ×<span id="crown-mult">2</span> (<span id="crown-secs">30</span>s)</div>
+        <span class="nut-emoji">🌰</span>
+        <span class="nut-label">Click me!</span>
+      </button>
+    </div>
+
+    <!-- MAIN TABS -->
+    <div id="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('buildings',this)"><span class="tab-icon">🏗️</span>Buildings</button>
+      <button class="tab-btn" onclick="switchTab('stats',this)"><span class="tab-icon">📊</span>Stats</button>
+      <button class="tab-btn" onclick="switchTab('journal',this)"><span class="tab-icon">📜</span>Journal</button>
+      <button class="tab-btn" onclick="switchTab('colony',this)"><span class="tab-icon">🏰</span>Colony</button>
+    </div>
+
+    <div id="content-area">
+
+      <!-- BUILDINGS PANEL -->
+      <div class="panel active" id="panel-buildings">
+        <div class="slots-info" id="slots-info">🏡 0 / 6 building slots used &nbsp;·&nbsp; 🔴 Always demolish freely</div>
+
+        <!-- Building sub-tabs -->
+        <div id="bld-subtab-bar">
+          <button class="bld-subtab active" onclick="switchBldTab('housing',this)"><span class="bst-icon">🛖</span>Housing</button>
+          <button class="bld-subtab" onclick="switchBldTab('entertainment',this)"><span class="bst-icon">🎭</span>Fun</button>
+          <button class="bld-subtab" onclick="switchBldTab('productivity',this)"><span class="bst-icon">⚙️</span>Prod.</button>
+          <button class="bld-subtab" onclick="switchBldTab('expansion',this)"><span class="bst-icon">🌳</span>Expand</button>
+        </div>
+
+        <div class="bld-panel active" id="bld-housing"></div>
+        <div class="bld-panel" id="bld-entertainment"></div>
+        <div class="bld-panel" id="bld-productivity"></div>
+        <div class="bld-panel" id="bld-expansion"></div>
+      </div>
+
+      <!-- STATS PANEL -->
+      <div class="panel" id="panel-stats">
+        <div class="stat-section"><h3>🌰 Nut Economy</h3>
+          <div class="stat-row"><span>Total Collected</span><span class="sval" id="stat-total">0</span></div>
+          <div class="stat-row"><span>Manual Clicks</span><span class="sval" id="stat-clicks">0</span></div>
+          <div class="stat-row"><span>Click Power</span><span class="sval" id="stat-clickpow">1</span></div>
+          <div class="stat-row"><span>Crown Bonus Active</span><span class="sval" id="stat-crown">No</span></div>
+          <div class="stat-row"><span>Auto Production</span><span class="sval" id="stat-auto">0.0 /s</span></div>
+        </div>
+        <div class="stat-section"><h3>🐿️ Squirrel Stats</h3>
+          <div class="stat-row"><span>Squirrels</span><span class="sval" id="stat-sq">0</span></div>
+          <div class="stat-row"><span>Max Capacity</span><span class="sval" id="stat-sqmax">0</span></div>
+          <div class="stat-row"><span>Happiness (target)</span><span class="sval" id="stat-happy">100%</span></div>
+          <div class="stat-row"><span>Fatigue (target)</span><span class="sval" id="stat-fatigue">0%</span></div>
+          <div class="stat-row"><span>Total Immigrated</span><span class="sval" id="stat-immigrants">0</span></div>
+        </div>
+        <div class="stat-section"><h3>🏗️ Colony</h3>
+          <div class="stat-row"><span>Buildings Owned</span><span class="sval" id="stat-buildings">0</span></div>
+          <div class="stat-row"><span>Building Slots</span><span class="sval" id="stat-slots">0/6</span></div>
+          <div class="stat-row"><span>Events Witnessed</span><span class="sval" id="stat-events">0</span></div>
+          <div class="stat-row"><span>Play Time</span><span class="sval" id="stat-time">0s</span></div>
+        </div>
+        <div class="stat-section"><h3>📐 Production Formula</h3>
+          <div class="stat-row"><span>Base (sq × 0.3 /s)</span><span class="sval" id="stat-base">0</span></div>
+          <div class="stat-row"><span>Productivity Bonus</span><span class="sval" id="stat-prodbns">0%</span></div>
+          <div class="stat-row"><span>Happiness Mult.</span><span class="sval" id="stat-happymul">1.0×</span></div>
+          <div class="stat-row"><span>Fatigue Penalty</span><span class="sval" id="stat-fatiguepenalty">0%</span></div>
+          <div class="stat-row"><span>Net Production</span><span class="sval" id="stat-netprod">0 /s</span></div>
+        </div>
+      </div>
+
+      <!-- JOURNAL PANEL -->
+      <div class="panel" id="panel-journal">
+        <div id="journal-entries">
+          <div class="journal-entry neutral"><div class="je-time">Day 1 — Welcome!</div>The Great Nut Chronicle begins. A lone squirrel thought: "I could collect WAY more nuts." And so, Squirrel Haven was born. Tap the big nut! 🌰</div>
+        </div>
+      </div>
+
+      <!-- COLONY PANEL -->
+      <div class="panel" id="panel-colony">
+        <div class="colony-section"><h3>🏰 Your Colony</h3><div id="colony-grid" class="colony-grid"><div class="colony-room" style="opacity:.3"><span class="room-icon">❓</span><span class="room-name">Empty</span></div></div></div>
+        <div class="colony-section"><h3>🧠 Gerald's Corner</h3><div id="colony-tips" style="font-size:.7rem;color:var(--cream-dark);line-height:1.6;"><em>"Build housing first! More squirrels = more production. Also feed me."</em> — Gerald 🐿️</div></div>
+      </div>
+
+    </div><!-- end content-area -->
+  </div>
+</div>
+
+<!-- OFFLINE MODAL -->
+<div id="offline-modal">
+  <div class="offline-box">
+    <h2>👋 Welcome back!</h2>
+    <p>Your squirrels worked hard while you were away.<br>Gerald supervised from a hammock.</p>
+    <div class="big-nuts" id="offline-nuts">+0 🌰</div>
+    <p id="offline-time-msg" style="font-size:.72rem;opacity:.7"></p>
+    <button class="offline-ok-btn" onclick="closeOfflineModal()">🐿️ Excellent! Let's go!</button>
+  </div>
+</div>
+
+<!-- CROWN MODAL -->
+<div id="crown-modal">
+  <div class="crown-box">
+    <h2>👑 Royal Squirrel Spotted!</h2>
+    <p>A <strong>Crown Squirrel</strong> has joined your colony! These rare VIP squirrels appear randomly and grant a temporary <strong>click multiplier bonus</strong>.<br><br>
+    While the Crown Squirrel is present, every nut you click is worth more. The bonus lasts <strong>30 seconds</strong> — make it count!</p>
+    <div class="crown-timer">×<span id="crown-modal-mult">2</span> click power for <span id="crown-modal-secs">30</span>s</div>
+    <p style="font-size:.65rem;opacity:.6;margin-bottom:12px">Crown Squirrels appear roughly every 2–5 minutes, more often when happiness is high.</p>
+    <button class="crown-close" onclick="closeCrownModal()">🌰 Go click stuff!</button>
+  </div>
+</div>
+
+<!-- DEMOLISH CONFIRM MODAL -->
+<div id="demolish-modal">
+  <div class="demolish-box">
+    <h2>🔴 Demolish?</h2>
+    <p id="demolish-msg">Are you sure you want to tear down this building?</p>
+    <div class="refund" id="demolish-refund">Refund: 🌰 0</div>
+    <div class="demo-btn-row">
+      <button class="demo-confirm" onclick="confirmDemolish()">💥 Demolish!</button>
+      <button class="demo-cancel" onclick="cancelDemolish()">😅 Keep it</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ================================================================
+//  SQUIRREL HAVEN — GAME ENGINE v3
+//  Fixes: demolish always available, crown squirrel UI,
+//         building sub-tabs, passive happiness/fatigue drift
+// ================================================================
+
+const SAVE_KEY = 'squirrelHavenSave_v3';
+
+// ===== GAME STATE =====
+const G = {
+  nuts:0, totalNuts:0, clicks:0, autoNutsCollected:0,
+  squirrels:0, maxSquirrels:0,
+  // happiness & fatigue are now tracked as "raw" values that drift over time
+  happyRaw:80, fatigueRaw:0,
+  happiness:80, fatigue:0, // display values (smoothed toward raw)
+  maxSlots:6,
+  buildings:{}, buildQueue:[],
+  eventActive:false, eventEffects:{}, eventCount:0,
+  immigrantTotal:0, playTime:0, clickPower:1,
+  lastEventTime:0,
+  lastSaveTime:Date.now(),
+  // Crown squirrel
+  crownActive:false, crownMult:2, crownRemaining:0,
+  lastCrownTime:0,
+  crownFirstSeen:false,
+};
+
+// ===== BUILDINGS =====
+const BUILDINGS = [
+  // HOUSING
+  {id:'nest',       cat:'housing', icon:'🪺', name:'Basic Nest',         desc:'"Cozy? Not really. Home? Absolutely."',                          cap:3,  happyB:0,  prodB:0,  fatigueB:0,  cost:15,   bt:5,   effect:'Capacity +3'},
+  {id:'luxury',     cat:'housing', icon:'🛋️', name:'Luxury Room',        desc:'"Silk acorn bedsheets. Gerald approved."',                       cap:5,  happyB:8,  prodB:0,  fatigueB:0,  cost:80,   bt:15,  effect:'Cap +5 | 😄 +8%'},
+  {id:'studio',     cat:'housing', icon:'🌿', name:'Branchy Studio',      desc:'"Open plan. Maximum leaf feng shui."',                           cap:5,  happyB:0,  prodB:3,  fatigueB:0,  cost:120,  bt:20,  effect:'Cap +5 | ⚡ +3%'},
+  {id:'squirinn',   cat:'housing', icon:'🏨', name:'SquirrInn Hotel',     desc:'"Continental breakfast: more nuts."',                            cap:12, happyB:5,  prodB:0,  fatigueB:0,  cost:500,  bt:60,  effect:'Cap +12 | 😄 +5%'},
+  {id:'palace',     cat:'housing', icon:'🏰', name:'Noisette Palace',     desc:'"Very fancy. Very expensive. Very worth it."',                   cap:20, happyB:15, prodB:5,  fatigueB:0,  cost:2000, bt:120, effect:'Cap +20 | 😄 +15% | ⚡ +5%'},
+  {id:'resort',     cat:'housing', icon:'🌴', name:'Forest Resort & Spa', desc:'"Mud baths and pine cone massages."',                            cap:25, happyB:25, prodB:10, fatigueB:-10,cost:8000, bt:180, unique:true, effect:'Cap +25 | 😄 +25% | ⚡ +10% | 💤 -10%'},
+  // ENTERTAINMENT
+  {id:'cinema',     cat:'entertainment', icon:'🎬', name:'Le Grand Écran',      desc:'"Nut Story 7. Sold out 3 years running."',              cap:0, happyB:15, prodB:0,  fatigueB:5,  cost:150,  bt:30,  optCap:50, effect:'😄 +15%'},
+  {id:'acrobatics', cat:'entertainment', icon:'🤸', name:'Acrobatics Hall',     desc:'"Minor injuries. Major fun."',                          cap:0, happyB:12, prodB:2,  fatigueB:3,  cost:200,  bt:25,  optCap:30, effect:'😄 +12% | ⚡ +2%'},
+  {id:'standup',    cat:'entertainment', icon:'🎤', name:'Stand-up Club',       desc:'"Why cross the road? Free nuts over there."',           cap:0, happyB:10, prodB:0,  fatigueB:-3, cost:250,  bt:20,  optCap:20, effect:'😄 +10% | 💤 -3%'},
+  {id:'roulette',   cat:'entertainment', icon:'🎰', name:'Roulette Noisette',   desc:'"The house always wins. The house is squirrels."',     cap:0, happyB:8,  prodB:4,  fatigueB:0,  cost:400,  bt:35,  optCap:15, effect:'😄 +8% | ⚡ +4%'},
+  {id:'funpark',    cat:'entertainment', icon:'🎡', name:'SquirrelLand Park',   desc:'"Fastest rollercoaster in the forest!"',               cap:0, happyB:30, prodB:0,  fatigueB:8,  cost:3000, bt:90,  unique:true, optCap:50, effect:'😄 +30%'},
+  // PRODUCTIVITY
+  {id:'press',      cat:'productivity', icon:'⚙️', name:'Nut Press',            desc:'"Squish those nuts into max efficiency."',             cap:0, happyB:0,  prodB:8,  fatigueB:0,  cost:50,   bt:10,  effect:'⚡ +8%'},
+  {id:'factory',    cat:'productivity', icon:'🏭', name:'Semi-Auto Cracker',    desc:'"Half automatic. The other half: squirrels."',         cap:0, happyB:0,  prodB:18, fatigueB:8,  cost:300,  bt:45,  effect:'⚡ +18% | 💤 +8%'},
+  {id:'nutlab',     cat:'productivity', icon:'🔬', name:'NutLab',               desc:'"Tiny goggles. Big science."',                         cap:0, happyB:0,  prodB:0,  fatigueB:0,  cost:600,  bt:60,  scienceB:true, effect:'⚡ +(happiness × 0.2)%'},
+  {id:'optimizer',  cat:'productivity', icon:'🗺️', name:'Gather Optimizer',     desc:'"GPS-guided foraging paths."',                         cap:0, happyB:0,  prodB:10, fatigueB:-5, cost:400,  bt:40,  effect:'⚡ +10% | 💤 -5%'},
+  {id:'turbine',    cat:'productivity', icon:'💨', name:'Nut Turbine',           desc:'"Converts wind to nuts. Physics!"',                    cap:0, happyB:0,  prodB:35, fatigueB:5,  cost:2500, bt:100, effect:'⚡ +35% | 💤 +5%'},
+  {id:'sqai',       cat:'productivity', icon:'🤖', name:'Squirrel A.I.',        desc:'"Its name: Nutsworth Q. Chatbot III."',                 cap:0, happyB:0,  prodB:80, fatigueB:-10,cost:10000,bt:180, unique:true, aiB:true, effect:'⚡ +80% | 💤 -10%'},
+  // EXPANSION
+  {id:'migration',  cat:'expansion', icon:'🚁', name:'Migration Center',        desc:'"Tiny helicopters for squirrels."',                    cap:0, happyB:5,  prodB:0,  fatigueB:0,  cost:800,  bt:60,  immigB:true, effect:'😄 +5% | Immigration ×1.5'},
+  {id:'newtrunk',   cat:'expansion', icon:'🌳', name:'New Trunk',               desc:'"A whole new tree! Real estate hates this."',          cap:0, happyB:0,  prodB:0,  fatigueB:0,  cost:1200, bt:45,  extraSlots:6,  effect:'🏡 +6 building slots'},
+  {id:'neighbor',   cat:'expansion', icon:'🏕️', name:'Neighbor Trunk',         desc:'"Colonizing the adjacent oak. It\'s fine."',           cap:0, happyB:0,  prodB:0,  fatigueB:0,  cost:5000, bt:120, extraSlots:12, effect:'🏡 +12 building slots'},
+  {id:'gym',        cat:'expansion', icon:'🏋️', name:'Squirrel Gym',           desc:'"No nuts no gains."',                                  cap:0, happyB:0,  prodB:5,  fatigueB:-20,cost:700,  bt:50,  effect:'⚡ +5% | 💤 -20%'},
+];
+const BMAP = {};
+BUILDINGS.forEach(b=>BMAP[b.id]=b);
+
+// ===== EVENTS =====
+const EVENTS = [
+  {id:'festival',    type:'positive', icon:'🎊', title:'Festival of the Sacred Nut!',    desc:'Immigration ×3 and production +50% for 20s!',                   duration:20, effects:{immigMult:3,prodMult:1.5}},
+  {id:'royal',       type:'positive', icon:'👑', title:'Grand Royal Squirrel Speaks!',    desc:'"We are here to be... nuts about nuts." Happiness boost!',        duration:15, effects:{happyBonus:10}},
+  {id:'love',        type:'positive', icon:'💕', title:'Season of Squirrel Love!',        desc:'Happiness up! Fatigue also up. Totally worth it.',               duration:12, effects:{happyBonus:20,fatigueBonus:15}},
+  {id:'cinema_nite', type:'positive', icon:'🍿', title:'Squirrel Maverick: Top Nut!',     desc:'"I feel the need... the need for NUTS." Morale boost!',           duration:15, effects:{happyBonus:15,fatigueBonus:5}},
+  {id:'monk',        type:'positive', icon:'🧘', title:'Monk Squirrel Retreat',           desc:'Everyone finds their inner nut. Production -15%, happiness +18%.', duration:20, effects:{prodMult:0.85,happyBonus:18}},
+  {id:'wheelrace',   type:'positive', icon:'🏎️', title:'Annual Wheel Race!',             desc:'NOBODY is working. RACING! Zero prod for 10s, then +20% boost.', duration:30, effects:{wheelRace:true}},
+  {id:'eagle',       type:'negative', icon:'🦅', title:'EAGLE ATTACK!',                   desc:'THE EAGLE IS HERE. HIDE. Production -30% for 10s!',              duration:10, effects:{prodMult:0.7}},
+  {id:'cat',         type:'negative', icon:'🐱', title:'Lost Domestic Cat Alert!',        desc:'"It just STARED." Happiness -10%, production -5%.',              duration:12, effects:{happyBonus:-10,prodMult:0.95}},
+  {id:'hedgehogs',   type:'negative', icon:'🦔', title:'Grumpy Hedgehogs!',               desc:'"They WON\'T stop complaining." Fatigue +20%, then prod boost.',  duration:15, effects:{fatigueBonus:20,postBoost:true}},
+  {id:'grill',       type:'negative', icon:'🔮', title:'The Mystical Grillé!',            desc:'Someone found the Mystical Grillé. Prod = 0 for 5s, then bliss.',duration:12, effects:{mysticalGrill:true}},
+  {id:'storm',       type:'negative', icon:'🌪️', title:'Wild Nut Storm!',                desc:'Nuts flying! Maybe extra, maybe nothing. Total chaos.',           duration:8,  effects:{nutStorm:true}},
+];
+
+// ===== HELPERS =====
+function fmt(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n).toString();}
+function getBuildCount(id){return G.buildings[id]||0;}
+function getUnique(id){return getBuildCount(id)>=1;}
+function isBuilding(id){return G.buildQueue.some(q=>q.id===id);}
+function countUsedSlots(){return G.buildQueue.length+Object.values(G.buildings).reduce((a,v)=>a+v,0);}
+
+// ===== SAVE / LOAD =====
+function saveGame(){
+  const save={
+    nuts:G.nuts, totalNuts:G.totalNuts, clicks:G.clicks, autoNutsCollected:G.autoNutsCollected,
+    squirrels:G.squirrels, maxSquirrels:G.maxSquirrels,
+    happyRaw:G.happyRaw, fatigueRaw:G.fatigueRaw,
+    happiness:G.happiness, fatigue:G.fatigue,
+    maxSlots:G.maxSlots, buildings:G.buildings,
+    buildQueue:G.buildQueue.map(q=>({...q})),
+    eventCount:G.eventCount, immigrantTotal:G.immigrantTotal,
+    playTime:G.playTime, clickPower:G.clickPower,
+    lastSaveTime:Date.now(),
+    crownFirstSeen:G.crownFirstSeen,
+  };
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}
+}
+
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const save=JSON.parse(raw);
+    Object.assign(G,save);
+    G.eventActive=false; G.eventEffects={};
+    G.crownActive=false; G.crownRemaining=0;
+    G.lastEventTime=Date.now();
+    return true;
+  }catch(e){return false;}
+}
+
+function applyOfflineProgress(){
+  const now=Date.now();
+  const elapsed=Math.min((now-(G.lastSaveTime||now))/1000, 28800);
+  if(elapsed<10)return;
+  const prod=calcProduction();
+  const offlineNuts=prod*elapsed;
+  if(offlineNuts>0){
+    G.nuts+=offlineNuts; G.totalNuts+=offlineNuts; G.autoNutsCollected+=offlineNuts;
+    showOfflineModal(offlineNuts,elapsed);
+  }
+  // finish builds
+  G.buildQueue.forEach(q=>q.remaining-=elapsed);
+  const done=G.buildQueue.filter(q=>q.remaining<=0);
+  G.buildQueue=G.buildQueue.filter(q=>q.remaining>0);
+  done.forEach(q=>{
+    const b=BMAP[q.id]; if(!b)return;
+    G.buildings[q.id]=(G.buildings[q.id]||0)+1;
+    if(b.extraSlots)G.maxSlots+=b.extraSlots;
+  });
+  G.maxSquirrels=calcMaxSquirrels();
+  // passive drift during offline — same rates as live tickDrift
+  // (buildings can't push back while game is closed)
+  const driftFatigue = FATIGUE_RISE_PER_SEC * elapsed;
+  const driftHappy   = HAPPY_DECAY_PER_SEC  * elapsed;
+  G.fatigueRaw = Math.min(100, G.fatigueRaw + driftFatigue);
+  G.happyRaw   = Math.max(5,   G.happyRaw   - driftHappy);
+}
+
+function showOfflineModal(nuts,seconds){
+  let t;
+  if(seconds<60)t=`${Math.floor(seconds)}s`;
+  else if(seconds<3600)t=`${Math.floor(seconds/60)}m ${Math.floor(seconds%60)}s`;
+  else t=`${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}m`;
+  document.getElementById('offline-nuts').textContent='+'+fmt(nuts)+' 🌰';
+  document.getElementById('offline-time-msg').textContent=`Away for ${t}. Gerald supervised from a hammock.`;
+  document.getElementById('offline-modal').classList.add('show');
+}
+function closeOfflineModal(){document.getElementById('offline-modal').classList.remove('show');}
+
+// ===== PRODUCTION =====
+function calcTargetHappyFatigue(){
+  // Target values based on buildings + events (not the live values)
+  let happyBonus=0, fatigueBonus=0, prodBonus=0;
+  BUILDINGS.forEach(b=>{
+    const cnt=getBuildCount(b.id); if(!cnt)return;
+    if(b.scienceB){prodBonus+=G.happiness*0.2*cnt;return;}
+    prodBonus  +=(b.prodB  ||0)*cnt;
+    happyBonus +=(b.happyB ||0)*cnt;
+    fatigueBonus+=(b.fatigueB||0)*cnt;
+    if(b.optCap&&G.squirrels>b.optCap*cnt)happyBonus-=5*cnt;
+  });
+  const ev=G.eventEffects;
+  if(ev.happyBonus)  happyBonus  +=ev.happyBonus;
+  if(ev.fatigueBonus)fatigueBonus+=ev.fatigueBonus;
+
+  // Base target: 50 + bonuses (buildings shift the equilibrium)
+  let targetHappy  = 50 + happyBonus;
+  if(G.maxSquirrels>0&&G.squirrels/G.maxSquirrels>0.9)targetHappy-=15;
+  if(G.squirrels===0)targetHappy+=50;
+  targetHappy = Math.min(100,Math.max(5,targetHappy));
+
+  let targetFatigue = fatigueBonus + (G.squirrels>30?10:0);
+  targetFatigue = Math.min(100,Math.max(0,targetFatigue));
+
+  return {targetHappy, targetFatigue, prodBonus};
+}
+
+function calcProduction(){
+  const {targetHappy, targetFatigue, prodBonus} = calcTargetHappyFatigue();
+  // use live smoothed values
+  const base = G.squirrels * 0.3;
+  const ev=G.eventEffects;
+  let prodMult=ev.prodMult||1;
+  if(ev.wheelRace)  prodMult=ev.wheelRaceActive?1.2:0;
+  if(ev.mysticalGrill&&ev.grillPhase1)prodMult=0;
+  return Math.max(0, base*(1+prodBonus/100)*(G.happiness/100)*(1-G.fatigue/100)*prodMult);
+}
+
+function calcMaxSquirrels(){
+  return BUILDINGS.reduce((a,b)=>a+(b.cap||0)*getBuildCount(b.id),0);
+}
+
+function calcClickPower(){
+  const crown = G.crownActive ? G.crownMult : 1;
+  return Math.max(1, Math.floor((1+getBuildCount('press')*0.5+getBuildCount('optimizer')*1+getBuildCount('turbine')*2+Math.floor(G.squirrels/10))*crown));
+}
+
+// ===== PASSIVE DRIFT =====
+// Calibrated so that (starting from a healthy colony: happy=80%, fatigue=10%):
+//   30 min away  → barely noticeable (-0.75% happy, +0.9% fatigue)
+//    8 h  away   → overnight dip     (-12% happy,  +14.4% fatigue) → prod ~51%
+//   24 h  away   → full day gone     (-36% happy,  +43.2% fatigue) → prod ~21%
+//   48 h+ away   → capped at floor/ceiling, no extra punishment
+// Buildings push the equilibrium target and can partially offset the drift
+// during active play, but cannot fully cancel it (passive pressure always applies).
+const HAPPY_DECAY_PER_SEC  = 1.5 / 3600;  // 1.5% per hour
+const FATIGUE_RISE_PER_SEC = 1.8 / 3600;  // 1.8% per hour
+
+function tickDrift(dt){
+  const {targetHappy, targetFatigue} = calcTargetHappyFatigue();
+
+  // Passive pressure — always on when squirrels are present
+  const passiveFatigueRate = G.squirrels > 0 ? FATIGUE_RISE_PER_SEC : 0;
+  const passiveHappyRate   = G.squirrels > 0 ? HAPPY_DECAY_PER_SEC  : 0;
+
+  // Drift toward target + passive pressure
+  const happySpeed   = 3;   // %/s approach speed toward target
+  const fatigueSpeed = 2;
+
+  // Move raw values
+  G.happyRaw   += (targetHappy   - G.happyRaw)   * happySpeed   * dt / 100;
+  G.fatigueRaw += (targetFatigue - G.fatigueRaw) * fatigueSpeed * dt / 100;
+
+  // Apply passive decay on top of target drift
+  // Rates are in %/second already, so just multiply by dt
+  G.happyRaw   -= passiveHappyRate   * dt;
+  G.fatigueRaw += passiveFatigueRate * dt;
+
+  G.happyRaw   = Math.min(100, Math.max(5,  G.happyRaw));
+  G.fatigueRaw = Math.min(100, Math.max(0,  G.fatigueRaw));
+
+  // Smooth displayed values toward raw (visual lag)
+  G.happiness = G.happiness + (G.happyRaw   - G.happiness)   * Math.min(1, dt*2);
+  G.fatigue   = G.fatigue   + (G.fatigueRaw - G.fatigue)     * Math.min(1, dt*2);
+}
+
+// ===== IMMIGRATION =====
+let immigTimer=0;
+function tryImmigrate(dt){
+  const free=G.maxSquirrels-G.squirrels;
+  if(free<=0)return;
+  immigTimer+=dt;
+  let rate=8;
+  if(G.happiness>70)rate-=2;
+  if(G.happiness>90)rate-=2;
+  if(getUnique('migration'))rate/=1.5;
+  const ev=G.eventEffects;
+  if(ev.immigMult)rate/=ev.immigMult;
+  rate=Math.max(2,rate);
+  if(immigTimer>=rate){
+    immigTimer=0;
+    const n=Math.min(free,1+Math.floor(Math.random()*2));
+    G.squirrels=Math.min(G.maxSquirrels,G.squirrels+n);
+    G.immigrantTotal+=n;
+    updateSquirrelVisuals();
+    if(n>1)addJournal(`${n} squirrels moved in! Gerald shook hands. Firm. Professional.`,'positive');
+  }
+}
+
+// ===== CROWN SQUIRREL =====
+let crownCheckTimer=0;
+function tickCrown(dt){
+  if(G.crownActive){
+    G.crownRemaining-=dt;
+    if(G.crownRemaining<=0){
+      G.crownActive=false;
+      G.crownRemaining=0;
+      document.getElementById('crown-indicator').classList.remove('show');
+      G.clickPower=calcClickPower();
+      addJournal('👑 The Crown Squirrel has retired to their royal hammock. Click bonus gone.','neutral');
+    } else {
+      document.getElementById('crown-secs').textContent=Math.ceil(G.crownRemaining);
+    }
+    return;
+  }
+  // Check for spawn
+  crownCheckTimer+=dt;
+  const timeSince=(Date.now()-G.lastCrownTime)/1000;
+  const minInterval=G.happiness>70 ? 120 : 180; // appear more often when happy
+  if(timeSince<minInterval)return;
+  if(G.squirrels<3)return; // need some squirrels first
+  // random chance
+  if(Math.random()>dt*0.003)return;
+  spawnCrownSquirrel();
+}
+
+function spawnCrownSquirrel(){
+  G.crownActive=true;
+  G.crownMult=2+Math.floor(Math.random()*3); // 2× 3× or 4×
+  G.crownRemaining=30;
+  G.lastCrownTime=Date.now();
+  G.clickPower=calcClickPower();
+
+  const ind=document.getElementById('crown-indicator');
+  document.getElementById('crown-mult').textContent=G.crownMult;
+  document.getElementById('crown-secs').textContent='30';
+  ind.classList.add('show');
+
+  addJournal(`👑 A CROWN SQUIRREL appeared! Click ×${G.crownMult} for 30 seconds! GO GO GO!`,'positive');
+  showToast(`👑 Crown Squirrel! Click power ×${G.crownMult} for 30s!`);
+  flashMilestone();
+
+  // Show explanation modal on first appearance
+  if(!G.crownFirstSeen){
+    G.crownFirstSeen=true;
+    document.getElementById('crown-modal-mult').textContent=G.crownMult;
+    document.getElementById('crown-modal-secs').textContent='30';
+    document.getElementById('crown-modal').classList.add('show');
+  }
+}
+function closeCrownModal(){document.getElementById('crown-modal').classList.remove('show');}
+
+// ===== CONSTRUCTION =====
+function tryBuild(id){
+  const b=BMAP[id]; if(!b)return;
+  if(b.unique&&getUnique(id)){showToast("🚫 Already built! It's one-of-a-kind.");return;}
+  const used=countUsedSlots();
+  if(used>=G.maxSlots){showToast("🚫 No slots! Build a New Trunk 🌳");return;}
+  const cnt=getBuildCount(id);
+  const cost=Math.floor(b.cost*Math.pow(1.5,cnt));
+  if(G.nuts<cost){showToast(`🚫 Need ${fmt(cost)} 🌰 (you have ${fmt(G.nuts)})`);return;}
+  G.nuts-=cost;
+  const buildTime=Math.max(2,b.bt-G.squirrels*0.15);
+  G.buildQueue.push({id,remaining:buildTime,total:buildTime});
+  addJournal(`🏗️ Building: ${b.name}. ETA ${Math.ceil(buildTime)}s.`,'neutral');
+  renderBuildings(true);
+  showToast(`🔨 Building ${b.name}...`);
+}
+
+function tickBuild(dt){
+  if(!G.buildQueue.length)return;
+  G.buildQueue.forEach(q=>q.remaining-=dt);
+  const done=G.buildQueue.filter(q=>q.remaining<=0);
+  G.buildQueue=G.buildQueue.filter(q=>q.remaining>0);
+  done.forEach(q=>{
+    const b=BMAP[q.id];
+    G.buildings[q.id]=(G.buildings[q.id]||0)+1;
+    if(b.extraSlots){G.maxSlots+=b.extraSlots;flashMilestone();addJournal(`🌳 ${b.name} done! +${b.extraSlots} slots!`,'positive');}
+    else addJournal(`✅ ${b.name} built! Gerald cut the ribbon with tiny scissors.`,'positive');
+    showToast(`✅ ${b.icon} ${b.name} is ready!`);
+    renderBuildings(true);
+  });
+  G.maxSquirrels=calcMaxSquirrels();
+  G.clickPower=calcClickPower();
+}
+
+// ===== DEMOLISH =====
+let demolishTarget=null;
+function askDemolish(id){
+  const b=BMAP[id]; if(!b)return;
+  const cnt=getBuildCount(id); if(cnt<=0)return;
+  // refund = 40% of current buy price
+  const currentCost=Math.floor(b.cost*Math.pow(1.5,cnt-1));
+  const refund=Math.floor(currentCost*0.4);
+  demolishTarget={id,refund};
+  document.getElementById('demolish-msg').textContent=`Tear down "${b.name}"? ${cnt>1?`(You have ${cnt}, this removes 1)`:''}`;
+  document.getElementById('demolish-refund').textContent=`Refund: 🌰 ${fmt(refund)} (40%)`;
+  document.getElementById('demolish-modal').classList.add('show');
+}
+function cancelDemolish(){demolishTarget=null;document.getElementById('demolish-modal').classList.remove('show');}
+function confirmDemolish(){
+  if(!demolishTarget)return;
+  const {id,refund}=demolishTarget;
+  const b=BMAP[id];
+  G.buildings[id]=(G.buildings[id]||1)-1;
+  if(G.buildings[id]<=0)delete G.buildings[id];
+  G.nuts+=refund; G.totalNuts+=refund;
+  G.maxSquirrels=calcMaxSquirrels();
+  // kick out excess squirrels
+  if(G.squirrels>G.maxSquirrels){G.squirrels=G.maxSquirrels;updateSquirrelVisuals();}
+  addJournal(`🔴 ${b.name} demolished. Refunded ${fmt(refund)} 🌰. Gerald watched silently.`,'negative');
+  showToast(`🔴 ${b.name} demolished. +${fmt(refund)} 🌰 refund`);
+  demolishTarget=null;
+  document.getElementById('demolish-modal').classList.remove('show');
+  renderBuildings(true);
+}
+
+// ===== EVENTS =====
+let eventClearTimer=0;
+function tryTriggerEvent(dt){
+  if(G.eventActive){eventClearTimer-=dt;if(eventClearTimer<=0)clearEvent();return;}
+  const timeSince=(Date.now()-G.lastEventTime)/1000;
+  if(timeSince<30)return;
+  if(Math.random()>dt*0.007)return;
+  triggerEvent(EVENTS[Math.floor(Math.random()*EVENTS.length)]);
+}
+function triggerEvent(ev){
+  G.eventActive=true; G.lastEventTime=Date.now();
+  G.eventEffects={...ev.effects}; G.eventCount++; eventClearTimer=ev.duration;
+  if(ev.effects.wheelRace){G.eventEffects.wheelRaceActive=false;setTimeout(()=>{G.eventEffects.wheelRaceActive=true;},10000);}
+  if(ev.effects.mysticalGrill){G.eventEffects.grillPhase1=true;setTimeout(()=>{G.eventEffects.grillPhase1=false;G.happyRaw=Math.min(100,G.happyRaw+15);},5000);}
+  if(ev.effects.nutStorm){const bonus=Math.random()<0.5?Math.floor(G.squirrels*3):0;G.nuts+=bonus;G.totalNuts+=bonus;addJournal(bonus>0?`🌪️ Nut Storm! +${fmt(bonus)} free nuts!`:`🌪️ Nut Storm! All drama, zero nuts.`,bonus>0?'positive':'negative');}
+  if(ev.effects.postBoost)setTimeout(()=>{G.eventEffects.prodMult=(G.eventEffects.prodMult||1)*1.3;addJournal('🦔 Hedgehogs left! Productivity boost!','positive');},8000);
+  showEventBanner(ev);
+  addJournal(`${ev.icon} ${ev.title} — ${ev.desc}`,ev.type);
+}
+function clearEvent(){G.eventActive=false;G.eventEffects={};hideEventBanner();}
+function showEventBanner(ev){
+  document.getElementById('ev-title').textContent=`${ev.icon} ${ev.title}`;
+  document.getElementById('ev-desc').textContent=ev.desc;
+  document.getElementById('event-banner').className='show';
+  setTimeout(()=>{if(!G.eventActive)hideEventBanner();},6000);
+}
+function hideEventBanner(){document.getElementById('event-banner').className='';}
+
+// ===== CLICK =====
+function clickNut(e){
+  const power=G.clickPower;
+  G.nuts+=power; G.totalNuts+=power; G.clicks++;
+  const zone=document.getElementById('game-zone');
+  const rect=zone.getBoundingClientRect();
+  const p=document.createElement('div'); p.className='click-particle';
+  p.textContent=G.crownActive?`👑+${power}🌰`:`+${power}🌰`;
+  const ex=(e.clientX||(e.touches&&e.touches[0]?.clientX)||rect.left+rect.width/2);
+  const ey=(e.clientY||(e.touches&&e.touches[0]?.clientY)||rect.top+rect.height/2);
+  p.style.left=(ex-rect.left-20+(Math.random()-.5)*30)+'px';
+  p.style.top=(ey-rect.top-10)+'px';
+  zone.appendChild(p); setTimeout(()=>p.remove(),950);
+  if(G.clicks%50===0){const q=["Gerald is mildly impressed.","Your clicking is...concerning. In a good way.","Ancient prophecy spoke of a clicker like you.","Medical pros recommend breaks. Gerald doesn't.","The squirrels applauded. Briefly."];addJournal(`🖱️ ${G.clicks} clicks! "${q[Math.floor(Math.random()*q.length)]}"`,'neutral');}
+}
+
+// ===== SQUIRREL VISUALS =====
+function updateSquirrelVisuals(){
+  const layer=document.getElementById('squirrel-layer');
+  const current=layer.querySelectorAll('.squirrel-anim').length;
+  const target=Math.min(G.squirrels,25);
+  if(current<target){
+    for(let i=current;i<target;i++){
+      const sq=document.createElement('div');
+      const isCrowned=G.crownActive&&i===0;
+      sq.className='squirrel-anim'+(isCrowned?' crowned':'');
+      sq.textContent=isCrowned?'🐿️👑':'🐿️';
+      sq.style.left=(10+Math.random()*80)+'%';
+      sq.style.top=(15+Math.random()*70)+'%';
+      sq.style.animationDelay=(Math.random()*3)+'s';
+      sq.style.animationDuration=(2.5+Math.random()*2)+'s';
+      layer.appendChild(sq);
+    }
+  }else if(current>target){for(let i=0;i<current-target;i++)layer.lastChild?.remove();}
+}
+
+// ===== JOURNAL =====
+function addJournal(text,type='neutral'){
+  const container=document.getElementById('journal-entries');
+  const d=new Date();
+  const timeStr=`Day ${Math.floor(G.playTime/60)+1} — ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  const el=document.createElement('div'); el.className=`journal-entry ${type}`;
+  el.innerHTML=`<div class="je-time">${timeStr}</div>${text}`;
+  container.insertBefore(el,container.firstChild);
+  while(container.children.length>30)container.lastChild.remove();
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ===== MILESTONE =====
+function flashMilestone(){const f=document.createElement('div');f.className='milestone-flash';document.body.appendChild(f);setTimeout(()=>f.remove(),1000);}
+
+// ===== TAB SWITCHING =====
+function switchTab(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='stats')updateStats();
+  if(name==='colony')updateColony();
+}
+
+let currentBldTab='housing';
+function switchBldTab(cat,btn){
+  currentBldTab=cat;
+  document.querySelectorAll('.bld-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bld-subtab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bld-'+cat).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== RENDER BUILDINGS =====
+let _lastNuts=-1, _lastSlots=-1, _lastQueue='', _lastBuildingsHash='';
+function renderBuildings(force){
+  const used=countUsedSlots();
+  const qSig=G.buildQueue.map(q=>q.id+':'+q.remaining.toFixed(0)).join(',');
+  const bHash=JSON.stringify(G.buildings);
+  if(!force && Math.abs(G.nuts-_lastNuts)/Math.max(1,_lastNuts)<0.01 && used===_lastSlots && qSig===_lastQueue && bHash===_lastBuildingsHash) return;
+  _lastNuts=G.nuts; _lastSlots=used; _lastQueue=qSig; _lastBuildingsHash=bHash;
+
+  const cats=['housing','entertainment','productivity','expansion'];
+  cats.forEach(cat=>{
+    const container=document.getElementById('bld-'+cat);
+    if(!container)return;
+    container.innerHTML='';
+    BUILDINGS.filter(b=>b.cat===cat).forEach(b=>{
+      const cnt=getBuildCount(b.id);
+      const inQueue=isBuilding(b.id);
+      const cost=Math.floor(b.cost*Math.pow(1.5,cnt));
+      const canAfford=G.nuts>=cost;
+      const isMaxed=b.unique&&cnt>=1;
+      const noSlots=used>=G.maxSlots;
+
+      const card=document.createElement('div');
+      let cardCls='building-card';
+      if(inQueue)cardCls+=' building-now';
+      else if(canAfford&&!isMaxed&&!noSlots)cardCls+=' affordable';
+      card.className=cardCls;
+
+      const qi=G.buildQueue.find(q=>q.id===b.id);
+      const pct=qi?((qi.total-qi.remaining)/qi.total*100).toFixed(1):0;
+      const progressHtml=qi?`<div class="build-progress"><div class="build-progress-fill" style="width:${pct}%"></div></div>`:'';
+
+      let btnLabel,btnDisabled;
+      if(isMaxed){btnLabel='✅ Built';btnDisabled=true;}
+      else if(inQueue){btnLabel='⏳ Building';btnDisabled=true;}
+      else if(noSlots){btnLabel='🚫 No slots';btnDisabled=true;}
+      else{btnLabel=`🌰 ${fmt(cost)}`;btnDisabled=!canAfford;}
+
+      const nameExtras=(isMaxed?`<span class="badge badge-unique">Unique ✓</span>`:'')+
+                       (inQueue?`<span class="badge badge-building">🔨 Building</span>`:'');
+
+      // Demolish button only if we own at least 1
+      const demolishHtml=cnt>0?`<button class="demolish-btn" onclick="askDemolish('${b.id}')">🔴 Demo</button>`:'';
+
+      card.innerHTML=`
+        <div class="building-icon">${b.icon}</div>
+        <div class="building-info">
+          <div class="building-name">${b.name}${nameExtras}</div>
+          <div class="building-desc">${b.desc}</div>
+          <div class="building-effects">${b.effect}</div>
+          ${cnt>0?`<div class="building-count">Owned: ${cnt}</div>`:''}
+          ${progressHtml}
+        </div>
+        <div class="btn-col">
+          <button class="building-btn" onclick="tryBuild('${b.id}')" ${btnDisabled?'disabled':''}>${btnLabel}</button>
+          ${demolishHtml}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  });
+
+  document.getElementById('slots-info').textContent=`🏡 ${used} / ${G.maxSlots} slots used`;
+}
+
+// ===== STATS =====
+function updateStats(){
+  const prod=calcProduction(); const used=countUsedSlots();
+  document.getElementById('stat-total').textContent=fmt(G.totalNuts);
+  document.getElementById('stat-clicks').textContent=fmt(G.clicks);
+  document.getElementById('stat-clickpow').textContent=G.clickPower;
+  document.getElementById('stat-crown').textContent=G.crownActive?`👑 ×${G.crownMult} (${Math.ceil(G.crownRemaining)}s left)`:'No';
+  document.getElementById('stat-auto').textContent=prod.toFixed(2)+' /s';
+  document.getElementById('stat-sq').textContent=G.squirrels;
+  document.getElementById('stat-sqmax').textContent=G.maxSquirrels;
+  document.getElementById('stat-happy').textContent=G.happiness.toFixed(0)+'%';
+  document.getElementById('stat-fatigue').textContent=G.fatigue.toFixed(0)+'%';
+  document.getElementById('stat-immigrants').textContent=G.immigrantTotal;
+  document.getElementById('stat-buildings').textContent=used;
+  document.getElementById('stat-slots').textContent=`${used}/${G.maxSlots}`;
+  document.getElementById('stat-events').textContent=G.eventCount;
+  document.getElementById('stat-time').textContent=G.playTime<60?G.playTime.toFixed(0)+'s':(G.playTime/60).toFixed(1)+'m';
+  let pb=0;
+  BUILDINGS.forEach(b=>{const c=getBuildCount(b.id);if(!c)return;if(b.scienceB)pb+=G.happiness*0.2*c;else pb+=(b.prodB||0)*c;});
+  document.getElementById('stat-base').textContent=(G.squirrels*0.3).toFixed(2)+' /s';
+  document.getElementById('stat-prodbns').textContent=pb.toFixed(0)+'%';
+  document.getElementById('stat-happymul').textContent=(G.happiness/100).toFixed(2)+'×';
+  document.getElementById('stat-fatiguepenalty').textContent=G.fatigue.toFixed(0)+'%';
+  document.getElementById('stat-netprod').textContent=prod.toFixed(2)+' /s';
+}
+
+// ===== COLONY =====
+function updateColony(){
+  const grid=document.getElementById('colony-grid'); grid.innerHTML='';
+  const all=[];
+  BUILDINGS.forEach(b=>{for(let i=0;i<getBuildCount(b.id);i++)all.push({...b});});
+  G.buildQueue.forEach(q=>all.push({...BMAP[q.id],_building:true}));
+  if(!all.length){grid.innerHTML='<div class="colony-room" style="opacity:.3"><span class="room-icon">❓</span><span class="room-name">Empty</span></div>';}
+  else all.forEach(b=>{const el=document.createElement('div');el.className='colony-room';if(b._building)el.style.opacity='.5';el.innerHTML=`<span class="room-icon">${b.icon}${b._building?'🔨':''}</span><span class="room-name">${b.name}</span>`;grid.appendChild(el);});
+
+  const adv=G.squirrels===0?'"Build housing! NOW!" — Gerald 🐿️'
+    :G.happiness<40?'"CRITICAL: squirrels VERY unhappy. Entertain them NOW." — Gerald 🐿️'
+    :G.happiness<60?'"My people are unhappy. Entertainment please." — Gerald 🐿️'
+    :G.fatigue>70?'"Everyone is EXHAUSTED. Gym or Resort, immediately!" — Gerald 🐿️'
+    :G.fatigue>50?'"A little tired here. Consider building a gym." — Gerald 🐿️'
+    :countUsedSlots()>=G.maxSlots-1?'"Running out of space! New Trunk time!" — Gerald 🐿️'
+    :G.totalNuts>10000&&!getUnique('sqai')?'"Nutsworth Q. Chatbot III is still waiting." — Gerald 🐿️'
+    :['"Vibes: immaculate."','"No complaints. Unprecedented."','"Honestly proud of us."','"Everything is fine and I refuse to elaborate."'][Math.floor(Math.random()*4)]+' — Gerald 🐿️';
+  document.getElementById('colony-tips').innerHTML=adv;
+}
+
+// ===== MAIN LOOP =====
+let lastFrame=Date.now();
+let renderAccum=0;
+const RENDER_INTERVAL=0.3;
+
+function gameLoop(){
+  const now=Date.now();
+  const dt=Math.min((now-lastFrame)/1000,0.5);
+  lastFrame=now;
+  G.playTime+=dt;
+
+  // Drift happiness / fatigue
+  tickDrift(dt);
+
+  const prod=calcProduction();
+  const earned=prod*dt;
+  G.nuts+=earned; G.totalNuts+=earned; G.autoNutsCollected+=earned;
+
+  tickBuild(dt);
+  tryImmigrate(dt);
+  tryTriggerEvent(dt);
+  tickCrown(dt);
+
+  G.clickPower=calcClickPower();
+  G.maxSquirrels=calcMaxSquirrels();
+  if(G.squirrels>G.maxSquirrels){G.squirrels=G.maxSquirrels;updateSquirrelVisuals();}
+
+  // Warn bars
+  document.getElementById('happy-wrap').classList.toggle('bar-warn', G.happiness<30);
+  document.getElementById('fatigue-wrap').classList.toggle('bar-warn', G.fatigue>70);
+
+  // HUD
+  document.getElementById('nut-display').textContent=fmt(G.nuts);
+  document.getElementById('prod-display').textContent=prod.toFixed(1);
+  document.getElementById('sq-display').textContent=G.squirrels;
+  document.getElementById('sq-max-display').textContent=G.maxSquirrels;
+  const used=countUsedSlots();
+  document.getElementById('slots-used-display').textContent=used;
+  document.getElementById('slots-max-display').textContent=G.maxSlots;
+  document.getElementById('happy-val').textContent=G.happiness.toFixed(0);
+  document.getElementById('fatigue-val').textContent=G.fatigue.toFixed(0);
+  document.getElementById('happy-bar').style.width=G.happiness+'%';
+  document.getElementById('fatigue-bar').style.width=G.fatigue+'%';
+
+  renderAccum+=dt;
+  if(renderAccum>=RENDER_INTERVAL){renderAccum=0;renderBuildings();}
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ===== MILESTONES =====
+const milestones=[10,50,100,500,1000,5000,10000,50000,100000,500000,1e6];
+let milestoneIdx=0;
+setInterval(()=>{
+  while(milestoneIdx<milestones.length&&G.totalNuts>=milestones[milestoneIdx]){
+    const m=milestones[milestoneIdx];
+    flashMilestone();
+    showToast(`🎉 ${fmt(m)} total nuts! Gerald weeps with joy.`);
+    addJournal(`🌰 MILESTONE: ${fmt(m)} total nuts! The legend grows!`,'positive');
+    milestoneIdx++;
+  }
+},1500);
+
+// ===== AUTOSAVE =====
+setInterval(saveGame,15000);
+window.addEventListener('beforeunload',saveGame);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame();});
+
+// ===== INIT =====
+const hasSave=loadGame();
+if(hasSave){
+  applyOfflineProgress();
+  updateSquirrelVisuals();
+  addJournal('📂 Game loaded! Colony intact. Gerald is relieved.','neutral');
+}else{
+  addJournal('🌰 Welcome to Squirrel Haven! Tap the big nut. Gerald is watching.','neutral');
+  setTimeout(()=>{if(G.totalNuts<20)addJournal('💡 Gerald: "The nut won\'t click itself. Unless you build the A.I. That\'s later."','neutral');},10000);
+  setTimeout(()=>{if(!getBuildCount('nest'))addJournal('🐿️ Reminder: build a Basic Nest! Squirrels are waiting in the forest with tiny suitcases.','neutral');},20000);
+}
+while(milestoneIdx<milestones.length&&G.totalNuts>=milestones[milestoneIdx])milestoneIdx++;
+renderBuildings(true);
+gameLoop();
+</script>
+</body>
+</html>
