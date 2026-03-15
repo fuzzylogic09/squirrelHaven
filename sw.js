@@ -1,50 +1,56 @@
-// NutMania Service Worker
-// Cache-first strategy: serves from cache instantly, updates in background.
-const CACHE_NAME = 'nutmania-v1';
-const ASSETS = [
+// NutMania Service Worker v2
+const CACHE = 'nutmania-v2';
+
+// All files to pre-cache on install
+const PRECACHE = [
+  './',
   './noisette-clicker.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap',
 ];
 
-// Install: cache all core assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      // Cache local assets strictly, Google Fonts best-effort
-      return cache.addAll(['./noisette-clicker.html', './manifest.json'])
-        .then(() => cache.add('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap').catch(() => {}));
-    }).then(() => self.skipWaiting())
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(PRECACHE).catch(() => {}))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate: clean up old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch: cache-first, fall back to network, then cache stale copy
-self.addEventListener('fetch', event => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
+// Cache-first for local, network-first for external (fonts etc.)
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const isLocal = e.request.url.startsWith(self.location.origin);
 
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      const fetchPromise = fetch(event.request).then(response => {
-        // Cache valid responses (not opaque for cross-origin fonts)
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+  if (isLocal) {
+    // Cache-first
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          if (res && res.status === 200) {
+            caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          }
+          return res;
+        }).catch(() => caches.match('./noisette-clicker.html'));
+      })
+    );
+  } else {
+    // Network-first with cache fallback (for Google Fonts etc.)
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
         }
-        return response;
-      }).catch(() => null);
-
-      // Return cached immediately if available, otherwise wait for network
-      return cached || fetchPromise;
-    })
-  );
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+  }
 });
