@@ -9,7 +9,69 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NutMania">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.json">
+<!-- PWA manifest injected inline as a blob — no external file needed -->
+<script>
+(function(){
+  // Build a real PNG icon via Canvas so Chrome Android accepts it
+  function makeIcon(size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    // Background
+    ctx.fillStyle = '#2d1a0e';
+    const r = size * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(r, 0); ctx.lineTo(size-r, 0);
+    ctx.quadraticCurveTo(size, 0, size, r);
+    ctx.lineTo(size, size-r);
+    ctx.quadraticCurveTo(size, size, size-r, size);
+    ctx.lineTo(r, size);
+    ctx.quadraticCurveTo(0, size, 0, size-r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.fill();
+    // Emoji
+    ctx.font = `${size * 0.62}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🌰', size / 2, size / 2 + size * 0.03);
+    return c.toDataURL('image/png');
+  }
+
+  const icon192 = makeIcon(192);
+  const icon512 = makeIcon(512);
+
+  const manifest = {
+    name: 'NutMania',
+    short_name: 'NutMania',
+    description: 'The ultimate hazelnut idle clicker. Squirrels included.',
+    start_url: location.href,
+    scope: location.href,
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    background_color: '#2d1a0e',
+    theme_color: '#2d1a0e',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+    ]
+  };
+
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel   = 'manifest';
+  link.href  = url;
+  document.currentScript.after(link);
+
+  // Apple touch icon
+  const aLink = document.createElement('link');
+  aLink.rel   = 'apple-touch-icon';
+  aLink.href  = icon192;
+  document.currentScript.after(aLink);
+})();
+</script>
 <title>🌰 NutMania</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -882,14 +944,67 @@ document.addEventListener('selectstart',e=>{
 });
 
 // ============================================================
-// PWA — Service Worker registration
+// PWA — Inline Service Worker (no external sw.js file needed)
 // ============================================================
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[NutMania] Service Worker registered, scope:', reg.scope))
-      .catch(err => console.warn('[NutMania] Service Worker registration failed:', err));
-  });
+  const SW_CODE = `
+const CACHE = 'nutmania-v2';
+
+self.addEventListener('install', e => {
+  // Cache the page itself using its own URL
+  e.waitUntil(
+    caches.open(CACHE).then(cache =>
+      cache.add(self.location.origin + self.location.pathname.replace('sw-blob','') )
+        .catch(() => {})
+    ).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      const net = fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type !== 'opaque') {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        }
+        return res;
+      }).catch(() => null);
+      return cached || net;
+    })
+  );
+});
+`;
+
+  const swBlob = new Blob([SW_CODE], { type: 'application/javascript' });
+  const swUrl  = URL.createObjectURL(swBlob);
+
+  navigator.serviceWorker.register(swUrl, { scope: '/' })
+    .then(reg => {
+      console.log('[NutMania] SW registered via blob, scope:', reg.scope);
+      // Cache the current page explicitly after registration
+      if (reg.active) return;
+      reg.installing && reg.installing.addEventListener('statechange', function() {
+        if (this.state === 'activated') {
+          caches.open('nutmania-v2').then(c => c.add(location.href).catch(() => {}));
+        }
+      });
+    })
+    .catch(err => {
+      // Blob SW scope is restricted on some browsers — fallback: cache manually
+      console.warn('[NutMania] Blob SW failed, caching manually:', err);
+      if ('caches' in window) {
+        caches.open('nutmania-v2').then(c => c.add(location.href).catch(() => {}));
+      }
+    });
 }
 </script>
 </body>
