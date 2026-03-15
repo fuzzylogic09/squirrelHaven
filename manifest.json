@@ -1,0 +1,19 @@
+{
+  "name": "NutMania",
+  "short_name": "NutMania",
+  "description": "The ultimate hazelnut idle clicker. Squirrels included.",
+  "start_url": "./noisette-clicker.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#2d1a0e",
+  "theme_color": "#2d1a0e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%232d1a0e'/><text x='50%' y='54%' font-size='340' text-anchor='middle' dominant-baseline='middle'>🌰</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
